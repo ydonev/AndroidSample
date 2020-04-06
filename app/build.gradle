@@ -1,0 +1,293 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android' // add support for kotlin
+apply plugin: 'kotlin-android-extensions' // kotlin extensions for Android , i.e. Parcelize
+apply plugin: 'kotlin-kapt' // kapt is used for annotation processors in kotlin projects
+apply plugin: 'kotlin-allopen' // allow mocking of final classes
+apply plugin: 'com.jaredsburrows.spoon' // spoon is used for ui tests
+apply plugin: 'maven-publish' // used for upload APK Artifacts to http://nexus.neterra.skrill.net
+apply plugin: 'adeum'
+
+//plugins applied only in release flavour for better compile time in debug build type
+adeum {
+    // When you change this you need to change the check in SkrillPaymentsApplication.java as well
+    enabledForDebugBuilds = false
+
+    proguardMappingFileUpload {
+        enabled true //enables automatic uploads.
+        failBuildOnUploadFailure true
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force "com.google.android.material:material:$rootProject.material_version"
+    }
+}
+
+android {
+    compileSdkVersion rootProject.compile_sdk_version
+    buildToolsVersion rootProject.build_tools_version
+    useLibrary 'org.apache.http.legacy'
+    testBuildType 'debug'
+
+    packagingOptions {
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
+
+    sourceSets {
+        main {
+            res.srcDirs =
+                    [
+                            'src/main/res/countries',
+                            'src/main/res'
+                    ]
+        }
+
+        androidTest {
+            assets.srcDirs = ['src/androidTest/assets']
+        }
+    }
+
+    defaultConfig {
+        minSdkVersion rootProject.min_sdk_version
+        targetSdkVersion rootProject.target_sdk_version
+        versionCode = 20200330
+        versionName = "1.0.0"
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64' // required by jumio sdk
+
+        manifestPlaceholders["env_suffix"] = ""
+        manifestPlaceholders["build_type_suffix"] = ""
+
+        multiDexEnabled true
+
+        vectorDrawables.useSupportLibrary = true
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        "room.schemaLocation": "$projectDir/schemas".toString(),
+                        "room.incremental"   : "true"]
+            }
+        }
+
+        testApplicationId "com.moneybookers.skrillpayments.test"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // The following argument makes the Android Test Orchestrator run its
+        // "pm clear" command after each test invocation. This command ensures
+        // that the app's state is completely cleared between tests.
+        //Ignore Test Orchestrator till solving the issue with clearing of cache on bamboo builds
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+    }
+
+    dataBinding {
+        enabled = true
+    }
+
+    kapt {
+        javacOptions {
+            // Increase the max count of errors from annotation processors. Default is 100.
+            option("-Xmaxerrs", 500)
+        }
+    }
+
+    androidExtensions {
+        experimental = true
+    }
+
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
+            proguardFile 'proguard-project.txt'
+        }
+        debug {
+            debuggable true
+        }
+    }
+
+    lintOptions {
+        // See lint.xml for rules configuration
+
+        // Our current issues state, check only for new issues
+        baseline file('lint-baseline.xml')
+
+        // Check for issues disabled by default
+        checkAllWarnings true
+
+        // Treat all warnings as errors
+        warningsAsErrors true
+
+        // Break the build if error or warning is found
+        abortOnError true
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        animationsDisabled true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    implementation "com.google.android.material:material:$rootProject.material_version"
+    implementation "androidx.constraintlayout:constraintlayout:$rootProject.constraint_layout_version"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:$rootProject.swiperefreshlayout_version"
+
+    implementation "com.google.android.gms:play-services-location:$rootProject.google_play_location_version"
+    implementation "com.google.android.gms:play-services-vision:$rootProject.google_play_vision_version"
+    implementation "com.google.android.gms:play-services-safetynet:$rootProject.google_play_safetynet_version"
+    implementation "com.google.android.gms:play-services-auth:$rootProject.google_play_auth_version"
+    implementation "com.google.android.gms:play-services-auth-api-phone:$rootProject.google_play_auth_api_phone_version"
+    implementation "com.google.android.gms:play-services-tagmanager:$rootProject.google_play_tagmanager_version"
+    implementation "com.google.android.play:core:$rootProject.google_play_core_version"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$rootProject.kotlin_version"
+
+    // Firebase
+    implementation "com.google.firebase:firebase-analytics:$rootProject.firebase_analytics_version"
+    implementation "com.google.firebase:firebase-messaging:$rootProject.firebase_messaging_version"
+    implementation "com.google.firebase:firebase-config:$rootProject.firebase_config_version"
+    implementation "com.google.firebase:firebase-appindexing:$rootProject.firebase_appindexing_version"
+
+    implementation "com.facebook.android:facebook-core:$rootProject.facebook_sdk_version"
+
+    //JUMIO
+    implementation "com.jumio.android:core:$rootProject.jumio_sdk_version@aar"
+    implementation "com.jumio.android:nv:$rootProject.jumio_sdk_version@aar"
+    implementation "com.jumio.android:nv-mrz:$rootProject.jumio_sdk_version@aar"
+    implementation "com.jumio.android:dv:$rootProject.jumio_sdk_version@aar"
+    implementation "com.jumio.android:bam:$rootProject.jumio_sdk_version@aar"
+    implementation "com.jumio.android:nv-barcode:$rootProject.jumio_sdk_version@aar"
+
+    implementation "androidx.multidex:multidex:$rootProject.multidex_version"
+
+    implementation "com.google.dagger:dagger:$rootProject.dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$rootProject.dagger_version"
+
+    kaptAndroidTest "com.google.dagger:dagger-compiler:$rootProject.dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$rootProject.dagger_version"
+
+    compileOnly "com.google.code.findbugs:annotations:$rootProject.findbugs_annotations_version"
+
+    /* RxJava and RxAndroid */
+    implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxjava_version"
+    implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroid_version"
+    implementation "io.reactivex.rxjava2:rxkotlin:$rootProject.rxkotlin_version"
+
+    // Retrofit
+    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofit_version"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.retrofit_version"
+    implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofit_version"
+    implementation "com.squareup.retrofit2:converter-moshi:$rootProject.retrofit_version"
+    implementation "com.squareup.okhttp3:okhttp:$rootProject.okhttp_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$rootProject.okhttp_version"
+
+    implementation "com.squareup.moshi:moshi:$rootProject.moshi_version" //core library
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:$rootProject.moshi_version"
+
+    // Paging
+    implementation "androidx.paging:paging-runtime:$rootProject.android_paging_version"
+    implementation "androidx.paging:paging-rxjava2:$rootProject.android_paging_version"
+
+    // Lifecycle Extensions
+    implementation "androidx.lifecycle:lifecycle-extensions:$rootProject.android_lifecycle_version"
+    kapt "androidx.lifecycle:lifecycle-common-java8:$rootProject.android_lifecycle_version"
+
+    // Room
+    implementation "androidx.room:room-runtime:$rootProject.android_room_version"
+    kapt "androidx.room:room-compiler:$rootProject.android_room_version"
+    // optional - RxJava support for Room
+    implementation "androidx.room:room-rxjava2:$rootProject.android_room_version"
+
+    // Picasso
+    implementation "com.squareup.picasso:picasso:$rootProject.picasso_version"
+
+    implementation "com.airbnb.android:lottie:$rootProject.lottie_version"
+
+    /* Espresso test implementations */
+    androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espresso_version"
+    androidTestImplementation "androidx.test:runner:$rootProject.test_runner_version"
+    androidTestImplementation "androidx.test:rules:$rootProject.rules_version"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:$rootProject.espresso_version"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:$rootProject.espresso_version"
+    androidTestImplementation "androidx.test.espresso:espresso-web:$rootProject.espresso_version"
+    androidTestImplementation "androidx.test.espresso:espresso-idling-resource:$rootProject.espresso_version"
+    androidTestUtil "androidx.test:orchestrator:$rootProject.test_orchestrator_version"
+    // AndroidJunit4 is deprecated, to use the new one we need to add this library
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
+    androidTestImplementation "org.mockito:mockito-android:$rootProject.mockito_version"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$rootProject.mockito_kotlin_version"
+
+    /* Falcon */
+    androidTestImplementation "com.jraska:falcon:$rootProject.falcon_version"
+    androidTestImplementation "com.jraska:falcon-spoon-compat:$rootProject.falcon_version"
+
+    // Java Faker
+    androidTestImplementation "com.github.javafaker:javafaker:$rootProject.java_faker_version"
+
+    //Hi Chart
+    implementation "com.highsoft.highcharts:highcharts:$rootProject.hichart_version"
+
+    // Dependencies for local unit tests
+    testImplementation "junit:junit:$rootProject.junit_version"
+    testImplementation "org.hamcrest:hamcrest-all:$rootProject.hamcrest_version"
+    testImplementation "org.mockito:mockito-core:$rootProject.mockito_version"
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$rootProject.mockito_kotlin_version"
+    testImplementation 'org.json:json:20190722' // enable json parser for unit test
+
+    // Adobe Mobile
+    implementation "com.adobe.mobile:adobeMobileLibrary:$rootProject.adobe_mobile_version"
+
+    implementation "com.appdynamics:appdynamics-runtime:$rootProject.appdynamics_version"
+
+    // WireMock
+    androidTestImplementation("com.github.tomakehurst:wiremock:$rootProject.espresso_wiremock_version") {
+        //Allows us to use the Android version of Apache httpclient instead
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+
+        //Resolves the Duplicate Class Exception
+        //duplicate entry: org/objectweb/asm/AnnotationVisitor.class
+        exclude group: 'asm', module: 'asm'
+
+        //Fixes Warning conflict with Android's version of org.json
+        //org.json:json:20090211 is ignored for debugAndroidTest as it may be conflicting with the internal version provided by Android.
+        exclude group: 'org.json', module: 'json'
+    }
+
+    //Android compatible version of Apache httpclient.
+    androidTestImplementation "org.apache.httpcomponents:httpclient-android:$rootProject.espresso_httpclient_version"
+
+    // Adjust
+    implementation "com.adjust.sdk:adjust-android:$rootProject.adjust_version"
+    implementation "com.android.installreferrer:installreferrer:$rootProject.install_referrer_version"
+
+    // Nanorep
+    api "com.nanorep.search:ui:$rootProject.nanorep_version"
+    api "com.nanorep.search:engine:$rootProject.nanorep_version"
+
+    androidTestImplementation 'com.squareup.spoon:spoon-client:2.0.0-SNAPSHOT'
+
+    implementation "ru.tinkoff.scrollingpagerindicator:scrollingpagerindicator:$rootProject.scrolling_pager_indicator_version"
+
+    // Biometrics
+    implementation "androidx.biometric:biometric:$rootProject.android_biometrics_version"
+}
+
+apply plugin: 'com.google.gms.google-services'

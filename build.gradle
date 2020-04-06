@@ -1,0 +1,114 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    ext {
+        build_tools_version = '29.0.2'
+
+        compile_sdk_version = 29
+        target_sdk_version = 29
+        min_sdk_version = 19
+
+        kotlin_version = '1.3.61'
+
+        // AndroidX
+        material_version = '1.2.0-alpha02'
+        constraint_layout_version = '2.0.0-beta3'
+        swiperefreshlayout_version = '1.0.0'
+
+        rules_version = '1.1.0'
+        test_runner_version = '1.1.0'
+        // test orchestrator should have the same version as test runner
+        test_orchestrator_version = '1.1.0'
+        espresso_version = '3.1.0'
+        java_faker_version = '0.16'
+        google_play_location_version = '17.0.0'
+        google_play_vision_version = '18.0.0'
+        google_play_safetynet_version = '17.0.0'
+        google_play_auth_version = '17.0.0'
+        google_play_auth_api_phone_version = '17.1.0'
+        google_play_tagmanager_version = '17.0.0'
+        google_play_core_version = '1.6.4'
+        paysafe_mobile_sdk_version = '1.0.6'
+        facebook_sdk_version = '5.11.0'
+        jumio_sdk_version = '3.3.0'
+        multidex_version = '2.0.1'
+        threat_metrix_version = '5.4-73'
+        commons_io_version = '2.6'
+        commons_codec_version = '1.11'
+        dagger_version = '2.24'
+        rxjava_version = '2.2.2'
+        rxandroid_version = '2.1.0'
+        rxkotlin_version = '2.4.0'
+        retrofit_version = '2.4.0'
+        moshi_version = '1.9.2'
+        okhttp_version = '3.11.0' //do not update to 4.0 because it is not supported on API 19
+        android_paging_version = '2.1.0'
+        android_lifecycle_version = '2.2.0-rc03'
+        android_room_version = '2.2.2'
+        android_security_version = '1.0.0-beta01'
+        picasso_version = '2.71828'
+        lottie_version = '2.7.0'
+        firebase_analytics_version = '17.2.1'
+        firebase_messaging_version = '20.1.0'
+        firebase_config_version = '19.0.4'
+        firebase_appindexing_version = '19.0.0'
+        hichart_version = '7.2.1'
+        adobe_mobile_version = '4.17.4'
+        falcon_version = '2.1.1'
+        adjust_version = '4.17.0'
+        install_referrer_version = '1.1.1'
+        espresso_wiremock_version = '2.20.0'
+        espresso_httpclient_version = '4.3.5.1'
+        nanorep_version = '2.1.5'
+        findbugs_annotations_version = '3.0.1'
+        scrolling_pager_indicator_version = '1.0.6'
+        appdynamics_version = '5.3.1565'
+        android_biometrics_version = '1.0.1'
+
+        junit_version = '4.12'
+        hamcrest_version = '1.3'
+        mockito_version = '3.2.0'
+        mockito_kotlin_version = '2.2.0'
+        jacoco_version = '0.8.5'
+    }
+
+    ext.kotlin_version = "1.3.61"
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } // spoon
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.6.1'
+        classpath 'com.google.gms:google-services:4.3.3'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // kotlin
+        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlin_version"
+        // allow mocking of final classes
+        classpath 'com.jaredsburrows:gradle-spoon-plugin:1.5.0' // spoon
+        classpath "org.jacoco:org.jacoco.core:$jacoco_version" // unit tests coverage report
+        classpath "com.appdynamics:appdynamics-gradle-plugin:${rootProject.appdynamics_version}"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' } // spoon
+        maven { url 'https://mobile-sdk.jumio.com' } // jumio
+        maven { url 'https://highsoft.bintray.com/Highcharts' } // highchart
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xmaxerrs" << "1000"
+        }
+    }
+
+    // improve build time by 2-3 seconds by disabling dagger formatting
+    tasks.withType(JavaCompile).all {
+        options.compilerArgs += [
+                '-Adagger.formatGeneratedSource=disabled',
+                '-Adagger.gradle.incremental=enabled'
+        ]
+    }
+}

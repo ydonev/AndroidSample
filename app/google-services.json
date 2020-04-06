@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "647678345070",
+    "firebase_url": "https://gradletest-135d4.firebaseio.com",
+    "project_id": "gradletest-135d4",
+    "storage_bucket": "gradletest-135d4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:647678345070:android:936d9e32f573e97c43cb7f",
+        "android_client_info": {
+          "package_name": "blueprints.architecture.android.example.com.gradletest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "647678345070-fkp1rmrgbqtrb3ij7utsnd170frmlk9p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwOPigkW8droyNx06bC67Dj-rlJTIpYsE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "647678345070-fkp1rmrgbqtrb3ij7utsnd170frmlk9p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
